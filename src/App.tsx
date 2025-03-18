@@ -12,7 +12,8 @@ function App() {
         <div className="ml-64">
           <Routes>
             <Route path="/" element={<Dashboard />} />
-            {/* Add other routes as needed */}
+            <Route path="/staff" element={<Staff />} />
+            <Route path="/properties" element={<Properties />} />
           </Routes>
         </div>
         <Chatbot />
