@@ -5,8 +5,8 @@ import Dashboard from './components/Dashboard';
 import Staff from './components/Staff';
 import Properties from './components/Properties';
 import Chatbot from './components/Chatbot';
-import Login from './components/auth/Login';
-import Register from './components/auth/Register';
+import Login from './components/Login';
+import Register from './components/Register';
 import LandingPage from './components/LandingPage';
 
 function App() {
