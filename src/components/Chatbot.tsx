@@ -1,8 +1,11 @@
+// component/Chatbot.tsx
 import React, { useState, useEffect, useRef } from "react";
 import { Send, DollarSign, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { useAuth } from "../context/AuthContext"; // Import useAuth
 
 const Chatbot = () => {
+  const { isAuthenticated, logout } = useAuth(); // Access auth state and logout
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState([
@@ -15,18 +18,26 @@ const Chatbot = () => {
   const [error, setError] = useState<string | null>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  // Function to detect finance-related queries
+  // Retrieve token from storage
+  const getToken = () => {
+    return localStorage.getItem("token") || sessionStorage.getItem("token");
+  };
+
   const checkForFinanceKeywords = (text: string) => {
-    const financeKeywords = [ "expense", "revenue", "rent", "profit", "balance", "category", "report",
+    const financeKeywords = [
+      "expense", "revenue", "rent", "profit", "balance", "category", "report",
       "net worth", "salaries", "payment methods", "users", "transactions",
       "bill", "purchase", "spending", "paid", "received", "groceries",
-      "cash", "card", "credit", "debit", "bought", "spent", "invested", 
+      "cash", "card", "credit", "debit", "bought", "spent", "invested",
       "salary", "loan", "mortgage", "insurance", "fees", "interest",
-      "business expense", "equipment", "technology", "gadgets", "electronics", "laptop", "computer"];
-    const sqlActionKeywords = [   "show", "list", "calculate", "fetch", "get", "display", "record",
+      "business expense", "equipment", "technology", "gadgets", "electronics", "laptop", "computer"
+    ];
+    const sqlActionKeywords = [
+      "show", "list", "calculate", "fetch", "get", "display", "record",
       "add", "update", "remove", "delete", "track", "summarize", "analyze",
       "generate", "predict", "filter", "compare", "view", "withdraw",
-      "deposit", "paid", "transfer", "received", "purchased", "log", "spent", "bought"];
+      "deposit", "paid", "transfer", "received", "purchased", "log", "spent", "bought"
+    ];
 
     const lowerText = text.toLowerCase();
     if (lowerText.includes("what is") || lowerText.includes("mean by")) {
@@ -39,9 +50,13 @@ const Chatbot = () => {
     );
   };
 
-  // Function to handle message sending
   const handleSendMessage = async () => {
     if (!message.trim()) return;
+
+    if (!isAuthenticated) {
+      setChat((prev) => [...prev, { sender: "bot", text: "Please log in to use this feature." }]);
+      return;
+    }
 
     const userMessage = { sender: "user", text: message };
     setChat((prev) => [...prev, userMessage]);
@@ -51,7 +66,14 @@ const Chatbot = () => {
 
     try {
       const isFinanceQuery = checkForFinanceKeywords(message);
-      const apiUrl = isFinanceQuery ? "http://localhost:5000/api/nlp-to-sql" : "http://localhost:5000/api/chatbot";
+      const apiUrl = isFinanceQuery
+        ? "http://localhost:5000/api/nlp-to-sql"
+        : "http://localhost:5000/api/chatbot";
+
+      const token = getToken();
+      if (!token) {
+        throw new Error("No authentication token found. Please log in again.");
+      }
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -61,30 +83,32 @@ const Chatbot = () => {
 
       const response = await fetch(apiUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`, // Add the token here
+        },
         body: JSON.stringify(requestBody),
-        signal: controller.signal, // Pass the AbortSignal to the fetch request
+        signal: controller.signal,
       });
 
       clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errorResponse = await response.json();
-        console.log("Error Response:", errorResponse);
+        if (response.status === 403 || response.status === 401) {
+          logout(); // Log out if token is invalid or expired
+          throw new Error("Session expired. Please log in again.");
+        }
         throw new Error(`Request failed: ${errorResponse.error || "Unknown error"}`);
       }
 
       const data = await response.json();
       console.log("API Response:", data);
 
-      let botReply = ""; // Store the bot's reply
-
+      let botReply = "";
       if (isFinanceQuery) {
-        if (data.success) {
-          botReply = "✅ Successful operation";
-        } else {
-          botReply = "❌ Unsuccessful operation";
-        }
+        botReply = data.success ? "✅ Successful operation" : "❌ Unsuccessful operation";
       } else {
         if (data.success && typeof data.message === "string") {
           botReply = data.message;
@@ -93,7 +117,7 @@ const Chatbot = () => {
         }
       }
 
-      setChat((prev) => [...prev, { sender: "bot", text: botReply }]); // Add bot reply to chat
+      setChat((prev) => [...prev, { sender: "bot", text: botReply }]);
     } catch (err) {
       let errorMessage = "Sorry, something went wrong. Please try again.";
       if (err instanceof Error) {
@@ -104,13 +128,12 @@ const Chatbot = () => {
         }
       }
       setError(errorMessage);
-       setChat((prev) => [...prev, { sender: "bot", text: errorMessage }]); // Add error to the chat.
+      setChat((prev) => [...prev, { sender: "bot", text: errorMessage }]);
     } finally {
       setIsTyping(false);
     }
   };
 
-  // Function to handle Enter key press
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -118,7 +141,6 @@ const Chatbot = () => {
     }
   };
 
-  // Auto-scroll to the latest message
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
@@ -165,7 +187,6 @@ const Chatbot = () => {
                 </div>
               </div>
             ))}
-
             {isTyping && (
               <div className="flex justify-start">
                 <div className="p-3 rounded-lg bg-white shadow-sm text-gray-800 max-w-[80%] flex items-center space-x-1">
@@ -188,11 +209,14 @@ const Chatbot = () => {
                 className="flex-1 px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={isTyping}
               />
-              <button onClick={handleSendMessage} disabled={isTyping} className="p-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition">
+              <button
+                onClick={handleSendMessage}
+                disabled={isTyping}
+                className="p-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition"
+              >
                 <Send className="w-5 h-5" />
               </button>
             </div>
-            {/* {error && <p className="text-red-500 text-sm mt-2">{error}</p>} */}
           </div>
         </div>
       )}
