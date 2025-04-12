@@ -1,3 +1,4 @@
+// src/components/LandingPage.tsx
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
