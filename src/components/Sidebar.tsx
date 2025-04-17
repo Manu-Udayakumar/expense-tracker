@@ -2,78 +2,83 @@ import React from 'react';
 import {
   Building2,
   Users,
-  CalendarCheck,
   Wallet,
-  ClipboardList,
+  BarChart,
+  Bell,
+  IndianRupee,
   Settings,
   LogOut,
   UserCog,
   Home,
-  BarChart,
-  Bell,
-  IndianRupee
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 const categories = [
-  { name: 'Dashboard', icon: Home, path: '/' },
-  { name: 'Staff', icon: Users, path: '/staff' },
-  { name: 'Properties', icon: Building2, path: '/properties' },
-  { name: 'Expenses', icon: Wallet, path: '/expenses' },
-  { name: 'Revenue', icon: IndianRupee, path: '/revenue' }, // Changed DollarSign to IndianRupee
-  { name: 'Reports', icon: BarChart, path: '/reports' },
+  { name: 'dashboard', icon: Home, path: '/dashboard' },
+  { name: 'staff', icon: Users, path: '/staff' },
+  { name: 'properties', icon: Building2, path: '/properties' },
+  { name: 'expenses', icon: Wallet, path: '/expenses' },
+  { name: 'revenue', icon: IndianRupee, path: '/revenue' },
+  { name: 'reports', icon: BarChart, path: '/reports' },
 ];
 
 const Sidebar = () => {
   const navigate = useNavigate();
-  const isAdmin = true; // This would come from your auth context
+  const { logout } = useAuth();
+  const { t } = useTranslation();
+  const isAdmin = true; // Replace with real auth logic
 
   return (
-    <div className="w-64 h-screen bg-gray-50 fixed left-0 top-0 shadow-lg flex flex-col">
-      <div className="p-6">
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 rounded-xl bg-white shadow-[inset_-2px_-2px_4px_rgba(0,0,0,0.1),_inset_2px_2px_4px_rgba(255,255,255,0.9)] flex items-center justify-center">
+    <div className="w-64 h-screen bg-gray-50 fixed left-0 top-0 shadow-lg flex flex-col sm:w-20 sm:items-center lg:w-64">
+      <div className="p-4 sm:p-2 lg:p-6 flex-shrink-0">
+        <div className="flex items-center gap-3 mb-6 sm:flex-col sm:gap-1 lg:flex-row lg:mb-8">
+          <div className="w-10 h-10 rounded-xl bg-white shadow flex items-center justify-center">
             <Wallet className="w-6 h-6 text-blue-600" />
           </div>
-          <h1 className="text-xl font-bold text-gray-800">StayManager</h1>
+          <h1 className="text-xl font-bold text-gray-800 sm:hidden lg:block">StayManager</h1>
         </div>
 
-        <nav className="flex flex-col gap-2 max-h-[calc(100vh-280px)] overflow-y-auto">
+        <nav className="flex flex-col gap-2 overflow-y-auto flex-grow">
           {categories.map((category) => (
             <button
               key={category.name}
               onClick={() => navigate(category.path)}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white hover:shadow-[4px_4px_10px_rgba(0,0,0,0.1),-4px_-4px_10px_rgba(255,255,255,0.9)] transition-all duration-200"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white hover:shadow transition-all duration-200 sm:justify-center sm:px-2 lg:justify-start lg:px-4"
             >
               <category.icon className="w-5 h-5 flex-shrink-0" />
-              <span className="truncate">{category.name}</span>
+              <span className="truncate sm:hidden lg:block">{t(category.name)}</span>
             </button>
           ))}
 
           {isAdmin && (
             <button
               onClick={() => navigate('/staff-management')}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white hover:shadow-[4px_4px_10px_rgba(0,0,0,0.1),-4px_-4px_10px_rgba(255,255,255,0.9)] transition-all duration-200"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white hover:shadow transition-all duration-200 sm:justify-center sm:px-2 lg:justify-start lg:px-4"
             >
               <UserCog className="w-5 h-5 flex-shrink-0" />
-              <span className="truncate">Staff Management</span>
+              <span className="truncate sm:hidden lg:block">{t('staffManagement')}</span>
             </button>
           )}
         </nav>
       </div>
 
-      <div className="mt-auto p-6 border-t border-gray-200 space-y-2">
-        <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white hover:shadow-[4px_4px_10px_rgba(0,0,0,0.1),-4px_-4px_10px_rgba(255,255,255,0.9)] transition-all duration-200">
+      <div className="p-4 sm:p-2 lg:p-6 border-t border-gray-200 space-y-2 flex-shrink-0">
+        <button className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-gray-700 hover:bg-white hover:shadow transition-all duration-200 sm:justify-center sm:px-2 lg:justify-start lg:px-4">
           <Bell className="w-5 h-5 flex-shrink-0" />
-          <span className="truncate">Notifications</span>
+          <span className="truncate sm:hidden lg:block">{t('notifications')}</span>
         </button>
-        <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white hover:shadow-[4px_4px_10px_rgba(0,0,0,0.1),-4px_-4px_10px_rgba(255,255,255,0.9)] transition-all duration-200">
+        <button className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-gray-700 hover:bg-white hover:shadow transition-all duration-200 sm:justify-center sm:px-2 lg:justify-start lg:px-4">
           <Settings className="w-5 h-5 flex-shrink-0" />
-          <span className="truncate">Settings</span>
+          <span className="truncate sm:hidden lg:block">{t('settings')}</span>
         </button>
-        <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 hover:bg-white hover:shadow-[4px_4px_10px_rgba(0,0,0,0.1),-4px_-4px_10px_rgba(255,255,255,0.9)] transition-all duration-200">
+        <button
+          onClick={logout}
+          className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-red-600 hover:bg-white hover:shadow transition-all duration-200 sm:justify-center sm:px-2 lg:justify-start lg:px-4"
+        >
           <LogOut className="w-5 h-5 flex-shrink-0" />
-          <span className="truncate">Logout</span>
+          <span className="truncate sm:hidden lg:block">{t('logout')}</span>
         </button>
       </div>
     </div>

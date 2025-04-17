@@ -15,7 +15,7 @@ const Chatbot = () => {
     { sender: "bot", text: "Purchased a $40 of groceries with cash" },
   ]);
   const [isTyping, setIsTyping] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Removed unused error state
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   // Retrieve token from storage
@@ -62,7 +62,7 @@ const Chatbot = () => {
     setChat((prev) => [...prev, userMessage]);
     setMessage("");
     setIsTyping(true);
-    setError(null);
+    // Removed unused error state reset
 
     try {
       const isFinanceQuery = checkForFinanceKeywords(message);
@@ -127,7 +127,7 @@ const Chatbot = () => {
           errorMessage = `Error: ${err.message}`;
         }
       }
-      setError(errorMessage);
+      // Removed unused error state update
       setChat((prev) => [...prev, { sender: "bot", text: errorMessage }]);
     } finally {
       setIsTyping(false);
